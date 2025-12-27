@@ -39,9 +39,10 @@ export const processImageWithGLM = async (
             ]
           }
         ],
-        temperature: 0.1,
-        top_p: 0.7,
-        max_tokens: 1024, // 降低 token 限制以避免 Invalid Parameter
+        // Remove temperature/top_p which might cause invalid param errors in vision models or specific GLM versions
+        // temperature: 0.1,
+        // top_p: 0.7,
+        max_tokens: 1024, 
         stream: false
       })
     });

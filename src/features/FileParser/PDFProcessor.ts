@@ -44,8 +44,24 @@ export const convertPageToImage = async (
 
   await page.render(renderContext).promise;
   
+  // Resize if too large
+  const MAX_DIMENSION = 1024;
+  let finalCanvas = canvas;
+  
+  if (canvas.width > MAX_DIMENSION || canvas.height > MAX_DIMENSION) {
+    const scaleRatio = Math.min(MAX_DIMENSION / canvas.width, MAX_DIMENSION / canvas.height);
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width * scaleRatio;
+    tempCanvas.height = canvas.height * scaleRatio;
+    const tempCtx = tempCanvas.getContext('2d');
+    if (tempCtx) {
+        tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+        finalCanvas = tempCanvas;
+    }
+  }
+
   // Use lower quality to reduce base64 size (GLM has size limits)
-  return canvas.toDataURL('image/jpeg', 0.6);
+  return finalCanvas.toDataURL('image/jpeg', 0.6);
 };
 
 export const extractImagesFromPDF = async (
