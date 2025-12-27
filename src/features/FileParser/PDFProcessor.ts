@@ -21,7 +21,7 @@ export const loadPDF = async (file: File): Promise<pdfjsLib.PDFDocumentProxy> =>
 export const convertPageToImage = async (
   pdf: pdfjsLib.PDFDocumentProxy,
   pageNumber: number,
-  scale = 2.0
+  scale = 1.5
 ): Promise<string> => {
   const page = await pdf.getPage(pageNumber);
   const viewport = page.getViewport({ scale });
@@ -44,7 +44,8 @@ export const convertPageToImage = async (
 
   await page.render(renderContext).promise;
   
-  return canvas.toDataURL('image/jpeg', 0.8);
+  // Use lower quality to reduce base64 size (GLM has size limits)
+  return canvas.toDataURL('image/jpeg', 0.6);
 };
 
 export const extractImagesFromPDF = async (

@@ -10,14 +10,18 @@ export const processImageWithGLM = async (
   base64Image: string
 ): Promise<GLMResponse> => {
   try {
+    // 智谱 OpenAI 兼容接口
+    // 注意：某些实现可能对 base64 格式有特定要求。通常标准的 data uri 是最安全的。
+    // 如果仍然报错，可能需要检查 token 限制或 model 名称。
+    
     const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${apiKey}` // 智谱支持直接使用 API Key (兼容模式)
       },
       body: JSON.stringify({
-        model: 'glm-4v',
+        model: 'glm-4v', // 确保使用视觉模型
         messages: [
           {
             role: 'user',
@@ -29,7 +33,7 @@ export const processImageWithGLM = async (
               {
                 type: 'image_url',
                 image_url: {
-                  url: base64Image
+                  url: base64Image // 应该是 data:image/jpeg;base64,...
                 }
               }
             ]
@@ -37,7 +41,8 @@ export const processImageWithGLM = async (
         ],
         temperature: 0.1,
         top_p: 0.7,
-        max_tokens: 4096
+        max_tokens: 1024, // 降低 token 限制以避免 Invalid Parameter
+        stream: false
       })
     });
 
@@ -47,6 +52,8 @@ export const processImageWithGLM = async (
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      // 增加对 Invalid Parameter 的详细调试信息
+      console.error('GLM API Error Data:', errorData);
       return { 
         content: '', 
         error: errorData.error?.message || `API request failed with status ${response.status}` 

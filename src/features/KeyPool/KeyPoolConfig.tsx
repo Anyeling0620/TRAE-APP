@@ -1,20 +1,31 @@
 import React, { useState } from 'react';
 import { useKeyPoolStore } from './useKeyPoolStore';
-import { Button, Input, Card, Label } from '../../components/ui/primitives';
+import { Button, Input, Textarea, Card, Label } from '../../components/ui/primitives';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import { Plus, Trash2, Check, Eye, EyeOff, Settings } from 'lucide-react';
 
 export const KeyPoolConfig = () => {
   const { keys, addKey, removeKey, toggleKey } = useKeyPoolStore();
-  const [newKey, setNewKey] = useState('');
+  const [newKeys, setNewKeys] = useState('');
   const [provider, setProvider] = useState<'openai' | 'claude' | 'glm'>('glm');
   const [showKeys, setShowKeys] = useState(false);
 
-  const handleAddKey = () => {
-    if (newKey.trim()) {
-      addKey(newKey.trim(), provider);
-      setNewKey('');
-    }
+  const handleAddKeys = () => {
+    if (!newKeys.trim()) return;
+
+    const keyList = newKeys
+      .split('\n')
+      .map(k => k.trim())
+      .filter(k => k.length > 0);
+
+    keyList.forEach(key => {
+      // Avoid adding duplicates (simple check)
+      // decryptKey is expensive so we might just rely on user. 
+      // Or just add them, store handles IDs.
+      addKey(key, provider);
+    });
+
+    setNewKeys('');
   };
 
   return (
@@ -30,32 +41,40 @@ export const KeyPoolConfig = () => {
           <DialogTitle>API Key 管理 (Key Management)</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="flex gap-2 items-end">
-            <div className="grid gap-2 flex-1">
-              <Label htmlFor="key">输入 API Key</Label>
-              <Input
-                id="key"
-                value={newKey}
-                onChange={(e) => setNewKey(e.target.value)}
-                placeholder="sk-..."
-                type={showKeys ? "text" : "password"}
-              />
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center">
+               <Label htmlFor="keys">输入 API Keys (每行一个)</Label>
+               <div className="w-32">
+                  <select
+                    className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={provider}
+                    onChange={(e) => setProvider(e.target.value as 'openai' | 'claude' | 'glm')}
+                  >
+                    <option value="glm">Zhipu GLM</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="claude">Claude</option>
+                  </select>
+               </div>
             </div>
-            <div className="grid gap-2 w-28">
-              <Label>模型厂商</Label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                value={provider}
-                onChange={(e) => setProvider(e.target.value as 'openai' | 'claude' | 'glm')}
-              >
-                <option value="glm">Zhipu GLM</option>
-                <option value="openai">OpenAI</option>
-                <option value="claude">Claude</option>
-              </select>
+            
+            <Textarea
+              id="keys"
+              value={newKeys}
+              onChange={(e) => setNewKeys(e.target.value)}
+              placeholder={`sk-...\nsk-...`}
+              className="min-h-[100px] font-mono text-xs"
+            />
+            
+            <div className="flex justify-between items-center">
+               <Button variant="ghost" size="sm" onClick={() => setShowKeys(!showKeys)}>
+                  {showKeys ? <EyeOff className="h-3 w-3 mr-2" /> : <Eye className="h-3 w-3 mr-2" />}
+                  {showKeys ? '隐藏' : '显示'}
+               </Button>
+               <Button onClick={handleAddKeys} className="gap-2">
+                 <Plus className="h-4 w-4" />
+                 添加 Keys
+               </Button>
             </div>
-            <Button onClick={handleAddKey}>
-              <Plus className="h-4 w-4" />
-            </Button>
           </div>
 
           <div className="flex justify-end">
