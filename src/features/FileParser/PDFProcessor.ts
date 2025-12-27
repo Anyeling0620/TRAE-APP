@@ -1,10 +1,11 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Set worker source
-// Note: In a real Vite app, this might need to be handled differently (e.g., copying the worker file)
-// For now, we use the CDN or try to rely on the installed package if configured correctly in Vite
-// A common workaround for Vite is importing the worker script URL
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Use the exact version from node_modules or a more stable CDN
+// pdfjs-dist 5.x has breaking changes and uses mjs workers.
+// The most reliable way in Vite is to import the worker URL directly if possible, or use unpkg.
+// Note: worker.min.mjs is needed for module support in modern browsers/bundlers for v3+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 export interface PDFPageImage {
   pageNumber: number;
